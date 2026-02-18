@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Petualangan Pecahan: 1/2 dan 1/4</title>
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --accent-color: #FFE66D;
+            --dark-color: #2C3E50;
+            --light-color: #F7F9FC;
+            --success-color: #2ECC71;
+            --error-color: #E74C3C;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            position: relative;
+            border: 4px solid var(--secondary-color);
+        }
+
+        /* Header */
+        header {
+            background: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            height: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Screens */
+        .screen {
+            padding: 30px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Start Screen */
+        .start-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Game Screen */
+        .question-box {
+            background: #f0f8ff;
+            border: 2px dashed var(--secondary-color);
+            padding: 20px;
+            border-radius: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .question-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--dark-color);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        /* Visual Aids (Shapes) */
+        .visual-aid {
+            margin: 15px auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            min-height: 90px; /* Reserve space */
+            align-items: center;
+        }
+        
+        .shape {
+            width: 80px;
+            height: 80px;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Shape: Half (Setengah) */
+        .circle-shape {
+            background: conic-gradient(var(--secondary-color) 0% 50%, #ddd 50% 100%); 
+            border-radius: 50%;
+        }
+        
+        /* Shape: Quarter (Seperempat) */
+        .circle-quarter {
+            background: conic-gradient(var(--secondary-color) 0% 25%, #ddd 25% 100%); 
+            border-radius: 50%;
+        }
+
+        /* Visual Image Style (Pizza / Rambutan / Cokelat / Rectangle / Pencil) */
+        .visual-image {
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border: 2px solid #eee;
+            background: white;
+        }
+
+        /* Multiple Choice Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (min-width: 480px) {
+            .options-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            color: var(--dark-color);
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary-color);
+            background-color: #f0fffd;
+        }
+
+        /* Input Field for Section B */
+        .input-answer {
+            width: 80%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .input-answer:focus {
+            border-color: var(--secondary-color);
+        }
+
+        .submit-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Feedback Modal/Toast */
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            display: none; /* Hidden by default */
+            font-weight: bold;
+            font-size: 1.1rem; /* Perbesar sedikit agar jelas */
+            line-height: 1.4;
+        }
+
+        .feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            border: 1px solid #2ecc71;
+            /* Animasi Bounce */
+            animation: bounce 0.8s ease;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.9); opacity: 0; }
+            20% { transform: scale(1.1); opacity: 1; }
+            40% { transform: scale(1); }
+            60% { transform: scale(1.05); }
+            80% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        .feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+            border: 1px solid #e74c3c;
+            /* Animasi Shake untuk salah */
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Result Screen */
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+
+        .score-message {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .stars {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Petualangan Pecahan</h1>
+        <p>Belajar ½ (Seperdua) dan ¼ (Seperempat)</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen active">
+        <div style="margin: 20px 0;">
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <!-- Pizza Slice -->
+                <path d="M50 50 L20 80 A 50 50 0 0 1 80 80 Z" fill="#FF6B6B" stroke="#2C3E50" stroke-width="2"/>
+                <circle cx="50" cy="50" r="10" fill="#FFE66D" />
+                <circle cx="40" cy="70" r="3" fill="#FFE66D" />
+                <circle cx="60" cy="70" r="3" fill="#FFE66D" />
+            </svg>
+        </div>
+        <h2>Selamat Datang!</h2>
+        <p style="margin: 15px 0;">Kamu akan menjawab 15 pertanyaan tentang pecahan. Pecahannya mudah, pasti bisa!</p>
+        <p style="font-size: 0.9rem; color: #666;">Nyalakan volume untuk pengalaman yang lebih seru!</p>
+        <button class="start-btn" onclick="startGame()">Mulai Game</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="question-box">
+            <span class="question-number" id="questionNumber">Soal 1</span>
+            <div class="question-text" id="questionText">Pertanyaan akan muncul di sini...</div>
+            <div id="visualAidContainer" class="visual-aid"></div>
+        </div>
+
+        <div id="optionsContainer" class="options-grid">
+            <!-- Options will be injected here -->
+        </div>
+
+        <div id="inputContainer" style="display:none; width: 100%;">
+            <input type="text" id="userAnswer" class="input-answer" placeholder="Ketik jawaban..." autocomplete="off">
+            <button class="submit-btn" onclick="checkInputAnswer()">Jawab</button>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+        
+        <button id="nextBtn" style="display:none; margin-top:20px;" class="start-btn" onclick="nextQuestion()">Lanjut →</button>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="screen">
+        <div class="stars" id="starsDisplay">⭐⭐⭐</div>
+        <h2>Permainan Selesai!</h2>
+        <p>Skor kamu:</p>
+        <div class="score-display" id="finalScore">0</div>
+        <p class="score-message" id="scoreMessage">Hebat!</p>
+        <button class="start-btn" onclick="restartGame()">Main Lagi</button>
+    </div>
+</div>
+
+<script>
+    // --- SOUND SYSTEM (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+        // Coba resume jika suspend
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    const playCorrectSound = () => {
+        initAudio(); // Pastikan AudioContext aktif
+        
+        // Resume sekali lagi di dalam fungsi (penting untuk memastikan suara keluar)
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime); // Start pitch
+        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1); // Bounce up
+        
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); // Fade out
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    };
+
+    const playWrongSound = () => {
+        initAudio(); // Pastikan AudioContext aktif
+        
+        // Resume sekali lagi
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = 'sawtooth'; // Suara kasar seperti 'tetot'
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2); // Drop pitch
+        
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    };
+
+    const playWinSound = () => {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            
+            const startTime = audioCtx.currentTime + (i * 0.1);
+            
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, startTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.5);
+        });
+    };
+
+    // --- GAME LOGIC ---
+
+    // URL Gambar Assets
+    const PIZZA_IMAGE_URL = "https://z-cdn-media.chatglm.cn/files/1f21d5b6-d9b9-462b-b3cf-40b2f0daa72f.png?auth_key=1869067782-b69a61257a71441d851ac563cbb42cbc-0-3359dc3a69e7449f8f5e3bdbf9e101e2";
+    const RAMBUTAN_IMAGE_URL = "https://z-cdn-media.chatglm.cn/files/71027714-5119-4066-8c32-58a25721f7ed.png?auth_key=1869068174-a0a68d46b2f7488f87cf497cbad63160-0-fe820adfc178c124f3b22766b4bc66fc";
+    const CHOCOLATE_IMAGE_URL = "https://z-cdn-media.chatglm.cn/files/716c778a-559f-4c34-8d8d-957e3bd14034.png?auth_key=1869068513-11ef41a4f6bd4bd0b23895ddeb091452-0-795232560660596b9b4d5f09d1153027";
+    const RECTANGLE_IMAGE_URL = "https://z-cdn-media.chatglm.cn/files/9680a4ee-413f-4f79-b2cb-2c874f9ca0cc.png?auth_key=1869068770-a093c18e9f8a498bb8ef0a96df5d8292-0-d4c864bfac14debf8b5887c7af0da04e";
+    const PENCIL_IMAGE_URL = "https://z-cdn-media.chatglm.cn/files/bc75af83-e2d9-4efd-8639-3c181623d2ea.png?auth_key=1869069604-c720e796a3d148a99cdc1f6fd9da197f-0-50dadd4b29dad78e43f80c6574455d3e";
+
+    // Data Soal
+    const questions = [
+        {
+            type: 'mcq',
+            q: "Satu buah apel dibagi menjadi 2 bagian sama besar. Setiap bagian disebut …",
+            visual: 'half', 
+            options: ["¼", "½", "1"],
+            answer: "½",
+            explanation: "1 dibagi 2 sama dengan 1/2."
+        },
+        {
+            type: 'mcq',
+            q: "Ibu memotong kue menjadi 4 bagian sama besar. Satu potong kue bernilai …",
+            imageSrc: PIZZA_IMAGE_URL, 
+            options: ["¼", "½", "1"],
+            answer: "¼",
+            explanation: "1 bagian dari 4 bagian adalah 1/4."
+        },
+        {
+            type: 'mcq',
+            q: "Pecahan yang menunjukkan satu dari dua bagian sama besar adalah …",
+            visual: 'half',
+            options: ["¼", "½", "1"],
+            answer: "½",
+            explanation: "Satu dari dua adalah 1/2."
+        },
+        {
+            type: 'mcq',
+            q: "Harumi makan 1 bagian dari 4 bagian pizza yang sama besar. Bagian yang dimakan Harumi adalah …",
+            imageSrc: PIZZA_IMAGE_URL, 
+            options: ["¼", "½", "1"],
+            answer: "¼",
+            explanation: "1 bagian dari 4 adalah 1/4."
+        },
+        {
+            type: 'mcq',
+            q: "½ dari 8 buah rambutan adalah …",
+            imageSrc: RAMBUTAN_IMAGE_URL, 
+            options: ["2", "4", "6"],
+            answer: "4",
+            explanation: "Setengah dari 8 adalah 4."
+        },
+        {
+            type: 'mcq',
+            q: "Satu batang cokelat dibagi menjadi 2 bagian sama besar. Ali makan satu bagian. Ali makan … bagian cokelat.",
+            imageSrc: CHOCOLATE_IMAGE_URL, 
+            options: ["¼", "½", "2"],
+            answer: "½",
+            explanation: "1 dari 2 bagian adalah 1/2."
+        },
+        {
+            type: 'mcq',
+            q: "Satu kertas dibagi menjadi 4 bagian sama besar. Satu bagian kertas disebut …",
+            imageSrc: RECTANGLE_IMAGE_URL, 
+            options: ["¼", "½", "1"],
+            answer: "¼",
+            explanation: "1 dari 4 adalah 1/4."
+        },
+        {
+            type: 'mcq',
+            q: "Pecahan yang tepat untuk gambar setengah bagian adalah …",
+            visual: 'half',
+            options: ["¼", "½", "1"],
+            answer: "½",
+            explanation: "Setengah adalah 1/2."
+        },
+        {
+            type: 'mcq',
+            q: "¼ dari 12 pensil warna adalah …",
+            imageSrc: PENCIL_IMAGE_URL, 
+            options: ["3", "4", "6"],
+            answer: "3",
+            explanation: "12 dibagi 4 adalah 3."
+        },
+        {
+            type: 'mcq',
+            q: "Pecahan ¼ dibaca …",
+            visual: 'quarter',
+            options: ["Satu dua", "Satu per empat", "Dua per satu"],
+            answer: "Satu per empat",
+            explanation: "¼ dibaca satu per empat."
+        },
+        // Isian Singkat (B)
+        {
+            type: 'input',
+            q: "Ahmad membagi satu roti kepada temannya menjadi 2 bagian sama besar agar adil. Setiap bagian bernilai...",
+            visual: 'half',
+            validAnswers: ["1/2", "½", "seperdua", "setengah", "satu per dua"],
+            explanation: "Dibagi 2 sama dengan 1/2."
+        },
+        {
+            type: 'input',
+            q: "Ibu membagi kue untuk sedekah menjadi 4 bagian sama besar. Satu potong kue bernilai...",
+            imageSrc: PIZZA_IMAGE_URL, 
+            validAnswers: ["1/4", "¼", "seperempat", "satu per empat"],
+            explanation: "1 bagian dari 4 adalah 1/4."
+        },
+        {
+            type: 'input',
+            q: "Dalam Islam, kita dianjurkan untuk berbagi dengan adil. Pecahan yang dibaca 'satu per dua' ditulis...",
+            visual: 'half',
+            validAnswers: ["1/2", "½", "seperdua"],
+            explanation: "Satu per dua ditulis 1/2."
+        },
+        {
+            type: 'input',
+            q: "Satu pizza dibagi menjadi 4 bagian sama besar. Jika Ali memberikan 1 bagian kepada saudaranya, maka bagian yang diberikan sama dengan...",
+            imageSrc: PIZZA_IMAGE_URL, 
+            validAnswers: ["1/4", "¼", "seperempat", "satu per empat"],
+            explanation: "1 dari 4 adalah 1/4."
+        },
+        {
+            type: 'input',
+            q: "Pecahan ¼ dibaca...",
+            visual: 'quarter',
+            validAnswers: ["seperempat", "satu per empat", "1 per 4"],
+            explanation: "Dibaca seperempat atau satu per empat."
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let isAnswered = false;
+
+    // Elements
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const progressBar = document.getElementById('progressBar');
+    
+    const questionNumberEl = document.getElementById('questionNumber');
+    const questionTextEl = document.getElementById('questionText');
+    const visualAidContainer = document.getElementById('visualAidContainer');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const inputContainer = document.getElementById('inputContainer');
+    const userAnswerInput = document.getElementById('userAnswer');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function startGame() {
+        initAudio(); // Inisialisasi audio saat start
+        score = 0;
+        currentQuestion = 0;
+        startScreen.classList.remove('active');
+        resultScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        const q = questions[currentQuestion];
+        
+        questionNumberEl.innerText = `Soal ${currentQuestion + 1}`;
+        questionTextEl.innerText = q.q;
+        feedbackEl.className = 'feedback';
+        feedbackEl.style.display = 'none'; // Pastikan sembunyi di awal
+        nextBtn.style.display = 'none';
+        
+        // --- LOGIKA VISUAL ---
+        visualAidContainer.innerHTML = '';
+        
+        if (q.imageSrc) {
+            const img = document.createElement('img');
+            img.src = q.imageSrc;
+            img.className = 'visual-image';
+            img.alt = "Ilustrasi Soal";
+            visualAidContainer.appendChild(img);
+        } 
+        else if (q.visual === 'half') {
+            const shape = document.createElement('div');
+            shape.className = 'shape circle-shape';
+            visualAidContainer.appendChild(shape);
+        } else if (q.visual === 'quarter') {
+            const shape = document.createElement('div');
+            shape.className = 'shape circle-quarter';
+            visualAidContainer.appendChild(shape);
+        }
+
+        const progress = ((currentQuestion) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        optionsContainer.innerHTML = '';
+        inputContainer.style.display = 'none';
+        userAnswerInput.value = '';
+
+        if (q.type === 'mcq') {
+            optionsContainer.style.display = 'grid';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkMcqAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        } else {
+            optionsContainer.style.display = 'none';
+            inputContainer.style.display = 'block';
+            userAnswerInput.focus();
+            userAnswerInput.onkeypress = function (e) {
+                if (e.key === 'Enter') checkInputAnswer();
+            };
+        }
+    }
+
+    function checkMcqAnswer(selected, btnElement) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const q = questions[currentQuestion];
+        const isCorrect = selected === q.answer;
+
+        if (isCorrect) {
+            score++;
+            playCorrectSound(); // SUARA BENAR
+            btnElement.style.backgroundColor = '#2ECC71';
+            btnElement.style.color = 'white';
+            btnElement.style.borderColor = '#27ae60';
+            // TEKS KHUSUS BENAR
+            showFeedback(true, "Barokallahu jawaban antum benar! " + q.explanation);
+        } else {
+            playWrongSound(); // SUARA SALAH
+            btnElement.style.backgroundColor = '#E74C3C';
+            btnElement.style.color = 'white';
+            btnElement.style.borderColor = '#c0392b';
+            showFeedback(false, "Kurang tepat. " + q.explanation);
+            
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                if(btn.innerText === q.answer) {
+                    btn.style.border = "2px solid #2ECC71";
+                    btn.style.color = "#27ae60";
+                }
+            });
+        }
+        nextBtn.style.display = 'block';
+    }
+
+    function checkInputAnswer() {
+        if (isAnswered) return;
+        
+        const inputVal = userAnswerInput.value.trim().toLowerCase();
+        if (inputVal === "") return;
+
+        isAnswered = true;
+        const q = questions[currentQuestion];
+        const isCorrect = q.validAnswers.includes(inputVal);
+
+        if (isCorrect) {
+            score++;
+            playCorrectSound(); // SUARA BENAR
+            userAnswerInput.style.borderColor = '#2ECC71';
+            userAnswerInput.style.color = '#2ECC71';
+            // TEKS KHUSUS BENAR
+            showFeedback(true, "Barokallahu jawaban antum benar! " + q.explanation);
+        } else {
+            playWrongSound(); // SUARA SALAH
+            userAnswerInput.style.borderColor = '#E74C3C';
+            userAnswerInput.style.color = '#E74C3C';
+            showFeedback(false, "Jawaban yang benar adalah: " + q.validAnswers[0] + ". " + q.explanation);
+        }
+        nextBtn.style.display = 'block';
+    }
+
+    function showFeedback(isCorrect, text) {
+        feedbackEl.innerText = text;
+        
+        // Hapus class lama
+        feedbackEl.classList.remove('correct', 'incorrect');
+        
+        // Trigger reflow untuk mereset animasi
+        void feedbackEl.offsetWidth;
+        
+        // Pastikan elemen ditampilkan secara eksplisit di JS (Fix tdk muncul)
+        feedbackEl.style.display = 'block';
+        
+        // Tambahkan class baru
+        feedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect');
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        gameScreen.classList.remove('active');
+        resultScreen.classList.add('active');
+        progressBar.style.width = '100%';
+
+        const finalScoreEl = document.getElementById('finalScore');
+        const scoreMessageEl = document.getElementById('scoreMessage');
+        const starsDisplay = document.getElementById('starsDisplay');
+
+        const finalScore = Math.round((score / questions.length) * 100);
+        finalScoreEl.innerText = finalScore;
+
+        playWinSound(); // SUARA SELEBRASI
+
+        if (finalScore === 100) {
+            scoreMessageEl.innerText = "Sempurna! Kamu ahli matematika!";
+            starsDisplay.innerText = "⭐⭐⭐";
+            createConfetti();
+        } else if (finalScore >= 80) {
+            scoreMessageEl.innerText = "Hebat! Sedikit lagi sempurna.";
+            starsDisplay.innerText = "⭐⭐";
+        } else if (finalScore >= 60) {
+            scoreMessageEl.innerText = "Bagus! Terus berlatih ya.";
+            starsDisplay.innerText = "⭐";
+        } else {
+            scoreMessageEl.innerText = "Jangan menyerah, ayo coba lagi!";
+            starsDisplay.innerText = "🌟";
+        }
+    }
+
+    function restartGame() {
+        resultScreen.classList.remove('active');
+        startGame();
+    }
+
+    function createConfetti() {
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            confetti.style.backgroundColor = ['#FF6B6B', '#4ECDC4', '#FFE66D'][Math.floor(Math.random() * 3)];
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }
+    }
+</script>
+
+</body>
+</html>
